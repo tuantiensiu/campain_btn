@@ -1,0 +1,81 @@
+datasource DS {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = env("BINARY_TARGET")
+}
+
+model Meta {
+  id             String        @id @default(cuid())
+  key            String
+  value          String
+  type           String
+  DraftProfile   DraftProfile? @relation(fields: [draftProfileId], references: [id])
+  draftProfileId String?
+}
+
+model DraftProfile {
+  id          String                 @id @default(cuid())
+  fullName    String
+  nationalId  String?
+  phoneNumber String?
+  birthday    DateTime?
+  meta        Meta[]
+  activated   Boolean                @default(value: true)
+  createdAt   DateTime               @default(now())
+  containers  ProfilesOnContainers[]
+}
+
+model ContainerType {
+  id         String      @id @default(cuid())
+  slug       String      @unique
+  name       String
+  containers Container[]
+}
+
+model ContainerHost {
+  id         String      @id @default(cuid())
+  name       String
+  contact    String?
+  note       String?
+  containers Container[]
+}
+
+model Container {
+  id              String                 @id @default(cuid())
+  slug            String?
+  name            String
+  note            String?
+  profiles        ProfilesOnContainers[]
+  host            ContainerHost?         @relation(fields: [containerHostId], references: [id])
+  type            ContainerType          @relation(fields: [containerTypeId], references: [id])
+  capacity        Int?                   @default(value: 0)
+  updatedAt       DateTime               @updatedAt
+  createdAt       DateTime               @default(now())
+  containerTypeId String
+  containerHostId String?
+}
+
+model ContainerRole {
+  id          String                @id @default(cuid())
+  slug        String                @unique
+  name        String
+  container   ProfilesOnContainers? @relation(fields: [containerId, profileId], references: [containerId, profileId])
+  containerId String?
+  profileId   String?
+}
+
+model ProfilesOnContainers {
+  container   Container       @relation(fields: [containerId], references: [id])
+  containerId String
+  profile     DraftProfile    @relation(fields: [profileId], references: [id])
+  profileId   String
+  role        ContainerRole[]
+  note        String?
+  createdAt   DateTime        @default(now())
+
+  @@id([containerId, profileId])
+}

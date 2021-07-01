@@ -1,0 +1,152 @@
+datasource DS {
+  provider = "mysql"
+  url = "***"
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = env("BINARY_TARGET")
+}
+
+model User {
+  id         String  @default(cuid()) @id
+  email      String  @unique
+  password   String
+  permission Int
+  name       String?
+  profile    Profile @relation("UserProfile", fields: [profileId], references: [id])
+  profileId  String
+}
+
+model Meta {
+  id    String @default(cuid()) @id
+  key   String
+  value String
+  type  String
+}
+
+model DraftProfile {
+  id          String    @default(cuid()) @id
+  fullName    String
+  nationalId  String?
+  phoneNumber String?
+  birthday    DateTime?
+  meta        Meta[]
+}
+
+model Profile {
+  id           String            @default(cuid()) @id
+  fullName     String
+  gender       String?
+  oldId        String?           @unique
+  slug         String?           @unique
+  email        String?
+  facebookId   String?
+  phoneNumber  String?
+  birthday     DateTime?
+  joinDate     DateTime?
+  dayOfBirth   Int?
+  monthOfBirth Int?
+  yearOfBirth  Int?
+  org          Org?              @relation("ProfileOrg", fields: [orgId], references: [id])
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  leader       Group[]           @relation("GroupLeader")
+  member       Group[]           @relation("GroupMembers", references: [id])
+  attendee     Attendance[]      @relation("AttendanceAttendee", references: [id])
+  absentee     Attendance[]      @relation("AttendanceAbsentee", references: [id])
+  orgId        String?
+  user         User[]            @relation("UserProfile")
+  enrollment   GroupEnrollment[]
+}
+
+model Group {
+  id            String            @default(cuid()) @id
+  name          String
+  slug          String?           @unique
+  year          Int?
+  stage         String?
+  members       Profile[]         @relation("GroupMembers", references: [id])
+  startAt       DateTime?
+  endAt         DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt @default(now())
+  leader        Profile?          @relation("GroupLeader", fields: [leaderId], references: [id])
+  leaderId      String?
+  org           Org?              @relation(fields: [orgId], references: [id])
+  orgId         String?
+  attendances   Attendance[]      @relation("AttendanceGroup")
+  enrollment    GroupEnrollment[]
+  ReportInGroup ReportInGroup[]   @relation("ReportGroup")
+}
+
+model GroupEnrollment {
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  group     Group    @relation(fields: [groupId], references: [id])
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  groupId   String
+  profileId String
+
+  @@id([groupId, profileId])
+}
+
+model Org {
+  id         String     @default(cuid()) @id
+  name       String
+  groups     Group[]
+  activities Activity[] @relation("OrgActivity")
+  Profile    Profile[]  @relation("ProfileOrg")
+}
+
+model Activity {
+  id       String     @default(cuid()) @id
+  slug     String     @unique
+  name     String
+  color    String?
+  org      Org        @relation("OrgActivity", fields: [orgId], references: [id])
+  orgId    String
+  Schedule Schedule[] @relation("ScheduleActivity")
+}
+
+model Schedule {
+  id          String       @default(cuid()) @id
+  attendances Attendance[] @relation("AttendanceSchedule")
+  date        DateTime
+  activity    Activity     @relation("ScheduleActivity", fields: [activityId], references: [id])
+  activityId  String
+}
+
+model Attendance {
+  id         String    @default(cuid()) @id
+  slug       String    @unique
+  status     String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  group      Group     @relation("AttendanceGroup", fields: [groupId], references: [id])
+  schedule   Schedule  @relation("AttendanceSchedule", fields: [scheduleId], references: [id])
+  attendees  Profile[] @relation("AttendanceAttendee", references: [id])
+  absentees  Profile[] @relation("AttendanceAbsentee", references: [id])
+  groupId    String
+  scheduleId String
+}
+
+model ReportQuestion {
+  id       String         @default(cuid()) @id
+  type     String
+  content  String
+  campaign ReportCampaign @relation("ReportCampaignQuestions", fields: [id], references: [id])
+}
+
+model ReportCampaign {
+  id        String           @default(cuid()) @id
+  date      DateTime
+  questions ReportQuestion[] @relation("ReportCampaignQuestions")
+  report    ReportInGroup    @relation("ReportCampaign", fields: [id])
+}
+
+model ReportInGroup {
+  id       String         @default(cuid()) @id
+  group    Group          @relation("ReportGroup", fields: [id])
+  campaign ReportCampaign @relation("ReportCampaign")
+}

@@ -1,0 +1,78 @@
+datasource DS {
+  provider = "mysql"
+  url = "***"
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = env("BINARY_TARGET")
+}
+
+model Meta {
+  id             String        @default(cuid()) @id
+  key            String
+  value          String
+  type           String
+  DraftProfile   DraftProfile? @relation(fields: [draftProfileId], references: [id])
+  draftProfileId String?
+}
+
+model DraftProfile {
+  id          String                 @default(cuid()) @id
+  fullName    String
+  nationalId  String?
+  phoneNumber String?
+  birthday    DateTime?
+  meta        Meta[]
+  activated   Boolean                @default(value: true)
+  createdAt   DateTime               @default(now())
+  containers  ProfilesOnContainers[]
+}
+
+model ContainerType {
+  id         String      @default(cuid()) @id
+  slug       String      @unique
+  name       String
+  containers Container[]
+}
+
+model ContainerHost {
+  id         String      @default(cuid()) @id
+  name       String
+  contact    String?
+  note       String?
+  containers Container[]
+}
+
+model Container {
+  id              String                 @default(cuid()) @id
+  name            String
+  note            String?
+  profiles        ProfilesOnContainers[]
+  host            ContainerHost?         @relation(fields: [containerHostId], references: [id])
+  type            ContainerType          @relation(fields: [containerTypeId], references: [id])
+  capacity        Int?                   @default(value: 0)
+  updatedAt       DateTime               @updatedAt
+  createdAt       DateTime               @default(now())
+  containerTypeId String
+  containerHostId String?
+}
+
+model ContainerRole {
+  id          String                @default(cuid()) @id
+  name        String
+  container   ProfilesOnContainers? @relation(fields: [containerId, profileId], references: [containerId, profileId])
+  containerId String?
+  profileId   String?
+}
+
+model ProfilesOnContainers {
+  container   Container       @relation(fields: [containerId], references: [id])
+  containerId String
+  profile     DraftProfile    @relation(fields: [profileId], references: [id])
+  profileId   String
+  role        ContainerRole[]
+  note        String?
+  createdAt   DateTime        @default(now())
+  @@id([containerId, profileId])
+}

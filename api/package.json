@@ -1,0 +1,14 @@
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@barajs/formula": "3.0.0-alpha.482",
+    "@redwoodjs/api": "^0.16.0",
+    "axios": "0.20.0",
+    "firebase-admin": "9.0.0",
+    "google-libphonenumber": "3.2.12",
+    "khong-dau": "2.0.0",
+    "xml2js": "0.4.23"
+  }
+}
