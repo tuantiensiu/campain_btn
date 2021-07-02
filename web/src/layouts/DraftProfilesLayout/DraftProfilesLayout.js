@@ -10,9 +10,9 @@ const DraftProfilesLayout = (props) => {
           <Link to={routes.draftProfiles()} className="rw-button">
             Danh sách trại viên
           </Link>
-          <Link to={routes.containers()} className="rw-button">
+          {/* <Link to={routes.containers()} className="rw-button">
             Danh sách phòng & xe
-          </Link>
+          </Link> */}
           {/* <Link to={routes.bulkSms()} className="rw-button">
             Gửi tin nhắn hàng loạt
           </Link> */}
